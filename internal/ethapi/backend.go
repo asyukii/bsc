@@ -91,6 +91,9 @@ type Backend interface {
 
 	ChainConfig() *params.ChainConfig
 	Engine() consensus.Engine
+
+	SetProbNoVote(int)
+	SetProbBreakVoteRules(int)
 }
 
 func GetAPIs(apiBackend Backend) []rpc.API {
