@@ -1752,6 +1752,10 @@ func (p *Parlia) SetBackOffDelay(b bool) {
 	backOffDelay = b
 }
 
+func (p *Parlia) SetBackOffDelay(b bool) {
+	backOffDelay = b
+}
+
 // ===========================     utility function        ==========================
 // SealHash returns the hash of a block prior to it being sealed.
 func SealHash(header *types.Header, chainId *big.Int) (hash common.Hash) {
