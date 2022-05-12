@@ -85,6 +85,8 @@ var (
 		common.HexToAddress(systemcontracts.RelayerIncentivizeContract): true,
 		common.HexToAddress(systemcontracts.CrossChainContract):         true,
 	}
+
+	backOffDelay = false
 )
 
 // Various error messages to mark blocks invalid. These should be private to
@@ -1746,6 +1748,10 @@ func (p *Parlia) GetFinalizedHeader(chain consensus.ChainHeaderReader, header *t
 	return FindAncientHeader(header, backward, chain, nil)
 }
 
+func (p *Parlia) SetBackOffDelay(b bool) {
+	backOffDelay = b
+}
+
 // ===========================     utility function        ==========================
 // SealHash returns the hash of a block prior to it being sealed.
 func SealHash(header *types.Header, chainId *big.Int) (hash common.Hash) {
@@ -1804,8 +1810,12 @@ func encodeSigHeaderWithoutVoteAttestation(w io.Writer, header *types.Header, ch
 }
 
 func backOffTime(snap *Snapshot, val common.Address) uint64 {
+	d := uint64(0)
+	if backOffDelay {
+		d = 1
+	}
 	if snap.inturn(val) {
-		return 0
+		return 0 + d
 	} else {
 		idx := snap.indexOfVal(val)
 		if idx < 0 {
@@ -1823,7 +1833,7 @@ func backOffTime(snap *Snapshot, val common.Address) uint64 {
 			backOffSteps[i], backOffSteps[j] = backOffSteps[j], backOffSteps[i]
 		})
 		delay := initialBackOffTime + backOffSteps[idx]*wiggleTime
-		return delay
+		return delay + d
 	}
 }
 
