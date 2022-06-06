@@ -564,9 +564,11 @@ func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Add
 
 func (s *PublicBlockChainAPI) SetValidatorBehavior(ctx context.Context, noVoteProb, badVoteProb, blockDelay int) (bool, error) {
 	if noVoteProb > 0 {
+		log.Debug("set probNoVote", noVoteProb)
 		s.b.SetProbNoVote(noVoteProb)
 	}
 	if badVoteProb > 0 {
+		log.Debug("set probBreakVoteRules", badVoteProb)
 		s.b.SetProbBreakVoteRules(badVoteProb)
 	}
 	if blockDelay == 1 {

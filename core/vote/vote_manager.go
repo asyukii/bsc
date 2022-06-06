@@ -99,6 +99,7 @@ func (voteManager *VoteManager) loop() {
 		case cHead := <-voteManager.chainHeadCh:
 			rand.Seed(time.Now().UnixNano())
 			if rand.Intn(100) < voteManager.pool.probNoVote {
+				log.Debug("vote skipped", "probNoVote", voteManager.pool.probNoVote)
 				continue
 			}
 			if !startVote || cHead.Block == nil {
@@ -122,6 +123,9 @@ func (voteManager *VoteManager) loop() {
 
 			// Put Vote into journal and VotesPool if we are active validator and allow to sign it.
 			if ok, sourceNumber, sourceHash := voteManager.UnderRules(curHead); ok || rand.Intn(100) < voteManager.pool.probBreakVoteRule {
+				if !ok {
+					log.Debug("vote rules check skipped", "probBreakVoteRule", voteManager.pool.probBreakVoteRule)
+				}
 				if sourceHash == (common.Hash{}) {
 					continue
 				}
