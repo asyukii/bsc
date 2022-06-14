@@ -573,8 +573,10 @@ func (s *PublicBlockChainAPI) SetValidatorBehavior(ctx context.Context, noVotePr
 	}
 	switch blockDelay {
 	case 0:
+		log.Info("set blockDelay", blockDelay)
 		s.b.SetBackOffDelay(false)
 	case 1:
+		log.Info("set blockDelay", blockDelay)
 		s.b.SetBackOffDelay(true)
 	}
 	return true, nil

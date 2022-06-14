@@ -1810,17 +1810,13 @@ func encodeSigHeaderWithoutVoteAttestation(w io.Writer, header *types.Header, ch
 }
 
 func (p *Parlia) backOffTime(snap *Snapshot, header *types.Header, val common.Address) uint64 {
-	d := uint64(0)
-	if backOffDelay {
-		d = 1
-	}
 	if snap.inturn(val) {
-		return 0 + d
+		return 0
 	} else {
 		idx := snap.indexOfVal(val)
 		if idx < 0 {
 			// The backOffTime does not matter when a validator is not authorized.
-			return 0 + d
+			return 0
 		}
 
 		s := rand.NewSource(int64(snap.Number))
@@ -1835,7 +1831,7 @@ func (p *Parlia) backOffTime(snap *Snapshot, header *types.Header, val common.Ad
 				backOffSteps[i], backOffSteps[j] = backOffSteps[j], backOffSteps[i]
 			})
 			delay := initialBackOffTime + backOffSteps[idx]*wiggleTime
-			return delay + d
+			return delay
 		}
 
 		// Exclude the recently signed validators first, and then compute the backOffTime.
@@ -1845,7 +1841,7 @@ func (p *Parlia) backOffTime(snap *Snapshot, header *types.Header, val common.Ad
 			if header.Number.Uint64() < uint64(limit) || seen > header.Number.Uint64()-uint64(limit) {
 				if val == recent {
 					// The backOffTime does not matter when a validator has signed recently.
-					return 0 + d
+					return 0
 				}
 				recentVals[recent] = true
 			}
@@ -1872,7 +1868,7 @@ func (p *Parlia) backOffTime(snap *Snapshot, header *types.Header, val common.Ad
 		if isRecent, ok := recentVals[inTurnVal]; ok && isRecent {
 			delay -= initialBackOffTime
 		}
-		return delay + d
+		return delay
 	}
 }
 
