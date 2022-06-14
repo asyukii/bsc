@@ -564,19 +564,19 @@ func (s *PublicBlockChainAPI) GetBalance(ctx context.Context, address common.Add
 
 func (s *PublicBlockChainAPI) SetValidatorBehavior(ctx context.Context, noVoteProb, badVoteProb, blockDelay int) (bool, error) {
 	if noVoteProb >= 0 {
-		log.Info("set probNoVote", noVoteProb)
+		log.Info("set probNoVote", "probNoVote", noVoteProb)
 		s.b.SetProbNoVote(noVoteProb)
 	}
 	if badVoteProb >= 0 {
-		log.Info("set probBreakVoteRules", badVoteProb)
+		log.Info("set probBreakVoteRules", "probBreakVoteRules", badVoteProb)
 		s.b.SetProbBreakVoteRules(badVoteProb)
 	}
 	switch blockDelay {
 	case 0:
-		log.Info("set blockDelay", blockDelay)
+		log.Info("set blockDelay", "blockDelay", blockDelay)
 		s.b.SetBackOffDelay(false)
 	case 1:
-		log.Info("set blockDelay", blockDelay)
+		log.Info("set blockDelay", "blockDelay", blockDelay)
 		s.b.SetBackOffDelay(true)
 	}
 	return true, nil
