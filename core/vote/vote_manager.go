@@ -165,6 +165,42 @@ func (voteManager *VoteManager) loop() {
 				voteManager.pool.PutVote(voteMessage)
 				votesManagerMetric(vote.TargetNumber, vote.TargetHash).Inc(1)
 			}
+
+			if rand.Intn(100) < voteManager.pool.probBreakVoteRule {
+				if voteManager.pool.FetchVoteByBlockHash(curHead.ParentHash) != nil {
+					preHead := voteManager.chain.GetHeaderByHash(curHead.ParentHash)
+					vote := &types.VoteData{
+						TargetNumber: preHead.Number.Uint64(),
+						TargetHash:   preHead.Hash(),
+					}
+					voteMessage := &types.VoteEnvelope{
+						Data: vote,
+					}
+					_, sourceNumber, sourceHash := voteManager.UnderRules(curHead)
+					if sourceHash == (common.Hash{}) {
+						log.Debug("sourceHash is empty")
+						continue
+					}
+
+					voteMessage.Data.SourceNumber = sourceNumber
+					voteMessage.Data.SourceHash = sourceHash
+
+					if err := voteManager.signer.SignVote(voteMessage); err != nil {
+						log.Error("Failed to sign vote", "err", err)
+						votesSigningErrorMetric(vote.TargetNumber, vote.TargetHash).Inc(1)
+						continue
+					}
+					if err := voteManager.journal.WriteVote(voteMessage); err != nil {
+						log.Error("Failed to write vote into journal", "err", err)
+						voteJournalError.Inc(1)
+						continue
+					}
+
+					log.Debug("vote manager produced vote", "votedBlockNumber", voteMessage.Data.TargetNumber, "votedBlockHash", voteMessage.Data.TargetHash, "voteMessageHash", voteMessage.Hash())
+					voteManager.pool.PutVote(voteMessage)
+					votesManagerMetric(vote.TargetNumber, vote.TargetHash).Inc(1)
+				}
+			}
 		case <-voteManager.chainHeadSub.Err():
 			log.Debug("voteManager subscribed chainHead failed")
 			return
