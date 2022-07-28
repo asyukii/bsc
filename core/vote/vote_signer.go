@@ -42,7 +42,7 @@ func NewVoteSigner(blsPasswordPath, blsWalletPath string) (*VoteSigner, error) {
 
 	walletPassword, err := ioutil.ReadFile(blsPasswordPath)
 	if err != nil {
-		log.Error("Read BLS wallet password error: %v.", err)
+		log.Error("Read BLS wallet password error: %v", err)
 		return nil, err
 	}
 	log.Info("Read BLS wallet password successfully")
