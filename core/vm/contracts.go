@@ -20,6 +20,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"math/big"
 
 	//lint:ignore SA1019 Needed for precompile
@@ -1090,6 +1091,8 @@ func (c *voteSignatureVerify) Run(input []byte) ([]byte, error) {
 		sig     = getData(input, 128, 96)
 		BLSKey  = getData(input, 224, 48)
 	)
+
+	fmt.Println("vote signature verify run")
 
 	sigs := make([][]byte, 1)
 	msgs := make([][32]byte, 1)
