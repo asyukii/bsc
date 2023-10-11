@@ -1265,9 +1265,9 @@ func (bc *BlockChain) Stop() {
 			}
 		}
 
-		epochMetaSnapTree := bc.triedb.EpochMetaSnapTree()
-		if epochMetaSnapTree != nil {
-			if err := epochMetaSnapTree.Journal(); err != nil {
+		epochMetaSnap := bc.triedb.EpochMetaSnapTree()
+		if epochMetaSnap != nil {
+			if err := epochMetaSnap.Journal(); err != nil {
 				log.Error("Failed to journal epochMetaSnapTree", "err", err)
 			}
 		}

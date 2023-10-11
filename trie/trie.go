@@ -1055,11 +1055,17 @@ func (t *Trie) resolveEpochMeta(n node, epoch types.StateEpoch, prefix []byte) e
 		return nil
 	case *fullNode:
 		n.setEpoch(epoch)
+		// TODO if parent's epoch <= 1, just set Epoch0, opt in startup hit more time epochmeta problem
+		//if epoch <= types.StateEpoch1 {
+		//	return nil
+		//}
 		meta, err := t.reader.epochMeta(prefix)
 		if err != nil {
 			return err
 		}
-		n.EpochMap = meta.EpochMap
+		if meta != nil {
+			n.EpochMap = meta.EpochMap
+		}
 		return nil
 	case valueNode, hashNode, nil:
 		// just skip

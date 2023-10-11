@@ -378,6 +378,7 @@ func (p *BlockPruner) backUpOldDb(name string, cache, handles int, namespace str
 		log.Error("Failed to open ancient database", "err=", err)
 		return err
 	}
+
 	defer chainDb.Close()
 	log.Info("chainDB opened successfully")
 
