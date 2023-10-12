@@ -79,7 +79,7 @@ func batchFetchExpiredFromRemote(expiryMeta *stateExpiryMeta, addr common.Addres
 		var expiredPrefixKeys [][]byte
 		for i, key := range keys {
 			val, err := tr.TryLocalRevive(addr, key.Bytes())
-			log.Debug("fetchExpiredStorageFromRemote TryLocalRevive", "addr", addr, "key", key, "val", val, "err", err)
+			log.Info("fetchExpiredStorageFromRemote TryLocalRevive", "addr", addr, "key", key, "val", val, "err", err)
 			if _, ok := err.(*trie.MissingNodeError); !ok {
 				return nil, err
 			}
@@ -112,10 +112,13 @@ func batchFetchExpiredFromRemote(expiryMeta *stateExpiryMeta, addr common.Addres
 			keysStr[i] = common.Bytes2Hex(key[:])
 		}
 	}
+	if len(prefixKeysStr) == 0 {
+		return ret, nil
+	}
 
 	// cannot revive locally, fetch remote proof
 	proofs, err := expiryMeta.fullStateDB.GetStorageReviveProof(expiryMeta.originalRoot, addr, root, prefixKeysStr, keysStr)
-	log.Debug("fetchExpiredStorageFromRemote GetStorageReviveProof", "addr", addr, "keys", keysStr, "prefixKeys", prefixKeysStr, "proofs", len(proofs), "err", err)
+	log.Info("fetchExpiredStorageFromRemote GetStorageReviveProof", "addr", addr, "keys", keysStr, "prefixKeys", prefixKeysStr, "proofs", len(proofs), "err", err)
 	if err != nil {
 		return nil, err
 	}
