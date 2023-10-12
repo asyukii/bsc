@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/rawdb"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethdb"
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
 	"math/big"
@@ -141,6 +142,7 @@ func (s *SnapshotTree) Cap(blockRoot common.Hash) error {
 			diff.resetParent(newDiskLayer)
 		}
 	}
+	log.Info("SnapshotTree cap", "layers", len(s.layers), "children", len(s.children), "flatten", len(flatten))
 	return nil
 }
 
