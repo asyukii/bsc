@@ -905,7 +905,7 @@ func (s *stateObject) getExpirySnapStorage(key common.Hash) ([]byte, error, erro
 	// if found value not been pruned, just return, local revive later
 	if s.db.EnableLocalRevive() && len(val.GetVal()) > 0 {
 		s.futureReviveState(key)
-		log.Info("getExpirySnapStorage GetVal", "addr", s.address, "key", key, "val", hex.EncodeToString(val.GetVal()))
+		log.Debug("getExpirySnapStorage local revive GetVal", "addr", s.address, "key", key, "val", hex.EncodeToString(val.GetVal()))
 		return val.GetVal(), nil, nil
 	}
 

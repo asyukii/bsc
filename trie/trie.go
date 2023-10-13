@@ -626,7 +626,6 @@ func (t *Trie) insertWithEpoch(n node, prefix, key []byte, value node, epoch typ
 			return false, nil, err
 		}
 		branch.UpdateChildEpoch(int(key[matchlen]), t.currentEpoch)
-		branch.setEpoch(t.currentEpoch)
 
 		// Replace this shortNode with the branch if it occurs at index 0.
 		if matchlen == 0 {
@@ -678,12 +677,7 @@ func (t *Trie) insertWithEpoch(n node, prefix, key []byte, value node, epoch typ
 			}
 		}
 
-		dirty, nn, err := t.insertWithEpoch(rn, prefix, key, value, epoch)
-		if !t.renewNode(epoch, dirty, true) || err != nil {
-			return false, rn, err
-		}
-		return true, nn, nil
-
+		return t.insertWithEpoch(rn, prefix, key, value, epoch)
 	default:
 		panic(fmt.Sprintf("%T: invalid node: %v", n, n))
 	}
@@ -870,7 +864,7 @@ func (t *Trie) deleteWithEpoch(n node, prefix, key []byte, epoch types.StateEpoc
 	case *shortNode:
 		matchlen := prefixLen(key, n.Key)
 		if matchlen < len(n.Key) {
-			return false, n, nil // don't replace n on mismatch
+			return false, n, errors.New("cannot find target to delete") // don't replace n on mismatch
 		}
 		if matchlen == len(key) {
 			// The matched short node is deleted entirely and track
@@ -996,11 +990,7 @@ func (t *Trie) deleteWithEpoch(n node, prefix, key []byte, epoch types.StateEpoc
 			}
 		}
 
-		dirty, nn, err := t.deleteWithEpoch(rn, prefix, key, epoch)
-		if !t.renewNode(epoch, dirty, true) || err != nil {
-			return false, rn, err
-		}
-		return true, nn, nil
+		return t.deleteWithEpoch(rn, prefix, key, epoch)
 
 	default:
 		panic(fmt.Sprintf("%T: invalid node: %v (%v)", n, n, key))
@@ -1476,7 +1466,7 @@ func (t *Trie) findExpiredSubTree(n node, path []byte, epoch types.StateEpoch, p
 				Hash: common.BytesToHash(n.flags.hash),
 			}
 		}
-		err := t.findExpiredSubTree(n.Val, append(path, n.Key...), epoch, pruner, stats, nil, false)
+		err := t.findExpiredSubTree(n.Val, append(path, n.Key...), epoch, pruner, stats, itemCh, findExpired)
 		if err != nil {
 			return err
 		}
@@ -1485,10 +1475,15 @@ func (t *Trie) findExpiredSubTree(n node, path []byte, epoch types.StateEpoch, p
 		if stats != nil {
 			stats.Add(1)
 		}
+		if !findExpired {
+			itemCh <- &NodeInfo{
+				Hash: common.BytesToHash(n.flags.hash),
+			}
+		}
 		var err error
 		// Go through every child and recursively delete expired nodes
 		for i, child := range n.Children {
-			err = t.findExpiredSubTree(child, append(path, byte(i)), n.GetChildEpoch(i), pruner, stats, nil, false)
+			err = t.findExpiredSubTree(child, append(path, byte(i)), n.GetChildEpoch(i), pruner, stats, itemCh, findExpired)
 			if err != nil {
 				return err
 			}
@@ -1507,7 +1502,7 @@ func (t *Trie) findExpiredSubTree(n node, path []byte, epoch types.StateEpoch, p
 			return err
 		}
 
-		return t.findExpiredSubTree(resolve, path, epoch, pruner, stats, nil, false)
+		return t.findExpiredSubTree(resolve, path, epoch, pruner, stats, itemCh, findExpired)
 	case valueNode:
 		return nil
 	case nil:
