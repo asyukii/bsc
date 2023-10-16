@@ -812,10 +812,11 @@ func (s *BlockChainAPI) GetStorageReviveProof(ctx context.Context, stateRoot com
 	stateDb, header, _ = s.b.StateAndHeaderByNumber(ctx, rpc.LatestBlockNumber)
 	blockNum = hexutil.Uint64(header.Number.Uint64())
 
+	log.Info("GetStorageReviveProof", "blockNum", blockNum, "blockHash", header.Hash().Hex(), "stateRoot", stateRoot, "address", address.Hex(), "root", root.Hex(), "storageKeys", storageKeys, "storagePrefixKeys", storagePrefixKeys)
+
 	storageTrie, err = s.b.StorageTrie(stateRoot, address, root)
 	if (err != nil || storageTrie == nil) && stateDb != nil {
 		storageTrie, err = openStorageTrie(stateDb, header, address)
-		log.Info("GetStorageReviveProof from latest block number", "blockNum", blockNum, "blockHash", header.Hash().Hex())
 	}
 
 	if err != nil || storageTrie == nil {
